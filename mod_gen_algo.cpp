@@ -44,9 +44,9 @@ public:
 //defining chromosome or individual
 class Schedule{
 public:
-    vector<int>chromosome;
+    vector<Employee>chromosome;
     int fitness;
-    Schedule(vector<int> chromosome);
+    Schedule(vector<Employee> chromosome);
     Schedule mate(Schedule parent2);
     int calcFitness();
     void displaySchedule();
@@ -56,15 +56,15 @@ public:
 std::vector<Employee> domain;
 
 //returns a random mutated gene i.e. employee
-int mutated_genes(){
+Employee mutated_genes(){
     int len=domain.size();
     int i=rand()%len;
-    return domain[i].id;
+    return domain[i];
 }
 
 //creates a random schedule (individual)
-vector<int> createGnome(int len){
-    vector<int> gnome;
+vector<Employee> createGnome(int len){
+    vector<Employee> gnome;
     for (int i=0; i<len; ++i)
         gnome.push_back(mutated_genes());
     return gnome;
@@ -103,7 +103,7 @@ void Employee::showDetails(){
 
 
 //constructor for schedule class
-Schedule::Schedule(vector<int> chromosome){
+Schedule::Schedule(vector<Employee> chromosome){
     this->chromosome=chromosome;
     fitness=calcFitness();
 }
@@ -112,7 +112,7 @@ Schedule::Schedule(vector<int> chromosome){
 //mating function that produces offspring based on 2 parents
 Schedule Schedule::mate(Schedule parent2){
     //crossover and mutation goes here
-    vector<int> child_chromosome;
+    vector<Employee> child_chromosome;
     //make the size of child same as the parent
     int len=chromosome.size();
     for (int i=0; i<len; ++i){
@@ -134,7 +134,7 @@ int Schedule::calcFitness(){
     map<int,int> mem;
     int i=0;
     for (int j=0; j<chromosome.size(); ++j)
-        mem[chromosome[j]]=0;
+        mem[chromosome[j].id]=0;
 
     //initialize fitness value
     int fit=0;
@@ -142,21 +142,21 @@ int Schedule::calcFitness(){
     //code for no pair integer
     while (i<chromosome.size()){
         if (i==0){
-            ++mem[chromosome[i]];
-            if (chromosome[i+1]!=chromosome[i])
+            ++mem[chromosome[i].id];
+            if (chromosome[i+1].id!=chromosome[i].id)
                 ++fit;
             ++i;
         }
         else{
-            if (chromosome[i]==chromosome[i-1]){
+            if (chromosome[i].id==chromosome[i-1].id){
                 ++i;
             }
             else{
-                if (i<chromosome.size()-1 and chromosome[i]!=chromosome[i+1])
+                if (i<chromosome.size()-1 and chromosome[i].id!=chromosome[i+1].id)
                     ++fit;
                 else if (i==chromosome.size()-1)
                     ++fit;
-                mem[chromosome[i]]++;
+                mem[chromosome[i].id]++;
                 ++i;
             }
         }
@@ -164,9 +164,9 @@ int Schedule::calcFitness(){
 
     //code for repetitive integer
     for (int i=0; i<chromosome.size(); ++i){
-        if(mem[chromosome[i]]!=0){
-            fit+=(mem[chromosome[i]]-1);
-            mem[chromosome[i]]=0;
+        if(mem[chromosome[i].id]!=0){
+            fit+=(mem[chromosome[i].id]-1);
+            mem[chromosome[i].id]=0;
         }
     }
     return fit;
@@ -175,7 +175,7 @@ int Schedule::calcFitness(){
 //display the schedule created
 void Schedule::displaySchedule(){
     for (int i=0; i<chromosome.size(); ++i)
-        cout<<chromosome[i]<<" ";
+        cout<<chromosome[i].id<<" ";
 }
 
 int main(){
@@ -207,7 +207,7 @@ int main(){
             quit=true;
 	}
 	for(int i=0; i<POPULATION_SIZE; ++i){
-        vector<int> gnome=createGnome(WORKING_HOUR);    //creates a random schedule of length WORKING_HOUR
+        vector<Employee> gnome=createGnome(WORKING_HOUR);    //creates a random schedule of length WORKING_HOUR
         population.push_back(Schedule(gnome));      //add the random schedule to population
 	}
 
