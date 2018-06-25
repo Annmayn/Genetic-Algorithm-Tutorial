@@ -26,16 +26,16 @@ using namespace std;
 *                                                                                               *
 \***********************************************************************************************/
 
-const int POPULATION_SIZE=100;
-const int WORKING_HOUR=10;
+const unsigned int POPULATION_SIZE=100;
+const unsigned int WORKING_HOUR=8;
 
 //Employee is a gene; the class contains the info about the gene
 class Employee{
 private:
 	string name;
-	int startShift, endShift, workHour;
 public:
-    int id;
+    unsigned int startShift, endShift, workHour;
+    unsigned int id;
     Employee(string empName, int id, int frstShift, int lstShift);
     void addShift(int frstShift, int lstShift);
     void showDetails();
@@ -131,13 +131,19 @@ Schedule Schedule::mate(Schedule parent2){
 //main function that determines whether or not to accept the answer
 int Schedule::calcFitness(){
     //fitness calculation function goes here
-    map<int,int> mem;
-    int i=0;
-    for (int j=0; j<chromosome.size(); ++j)
+
+    //CONSTRAINTS FOR FITNESS CALCULATION
+    unsigned int strtHour=9;         //change this to change the starting time; current starting time:0900
+    unsigned int maxWorkHourPerDay=4;
+    //END OF CONSTRAINTS
+
+    map<unsigned int,unsigned int> mem;
+    unsigned int i=0;
+    for (unsigned int j=0; j<chromosome.size(); ++j)
         mem[chromosome[j].id]=0;
 
     //initialize fitness value
-    int fit=0;
+    unsigned int fit=0;
 
     //code for no pair integer
     while (i<chromosome.size()){
@@ -163,18 +169,37 @@ int Schedule::calcFitness(){
     }
 
     //code for repetitive integer
-    for (int i=0; i<chromosome.size(); ++i){
+    for (unsigned int i=0; i<chromosome.size(); ++i){
         if(mem[chromosome[i].id]!=0){
             fit+=(mem[chromosome[i].id]-1);
             mem[chromosome[i].id]=0;
         }
     }
+
+    //code for employee time consideration
+
+    for (unsigned int i=0; i<chromosome.size(); ++i){
+        if (i+strtHour<chromosome[i].startShift or i+strtHour>chromosome[i].endShift){
+            ++fit;
+        }
+    }
+
+    //code for max working hour per day
+    for (unsigned int j=0; j<chromosome.size(); ++j)
+        mem[chromosome[j].id]=0;
+    for (unsigned int i=0; i<chromosome.size(); ++i){
+        if(++mem[chromosome[i].id]>maxWorkHourPerDay)
+            ++fit;
+    }
+
+    //code for weekly work hour limit
+
     return fit;
 }
 
 //display the schedule created
 void Schedule::displaySchedule(){
-    for (int i=0; i<chromosome.size(); ++i)
+    for (unsigned int i=0; i<chromosome.size(); ++i)
         cout<<chromosome[i].id<<" ";
 }
 
@@ -199,14 +224,14 @@ int main(){
             domain.push_back(*e);
         }
         else if(inp=="show"){
-            for(int i=0; i<domain.size(); ++i){
+            for(unsigned int i=0; i<domain.size(); ++i){
                 domain[i].showDetails();
             }
         }
         else if (inp=="quit")
             quit=true;
 	}
-	for(int i=0; i<POPULATION_SIZE; ++i){
+	for(unsigned int i=0; i<POPULATION_SIZE; ++i){
         vector<Employee> gnome=createGnome(WORKING_HOUR);    //creates a random schedule of length WORKING_HOUR
         population.push_back(Schedule(gnome));      //add the random schedule to population
 	}
@@ -229,7 +254,6 @@ int main(){
         //mate the 2 random parents for rest 90% of the new_generation
         s=(90*POPULATION_SIZE)/100;
         for (int i=0; i<s; ++i){
-            int len=population.size();
             int r=rand()%100;           //select random 1st parent
             Schedule parent2=population[r];
             r=rand()%100;               //select random 2nd parent
